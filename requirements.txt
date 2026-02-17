@@ -7,6 +7,6 @@ uvicorn==0.41.0
 python-multipart==0.0.22
 mlflow==3.9.0
 dvc==3.66.1
-scikit-learn==1.8.0
+scikit-learn
 matplotlib==3.10.8
 pytest==9.0.2
