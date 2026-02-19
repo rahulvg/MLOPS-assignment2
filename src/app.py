@@ -20,6 +20,7 @@ def health():
     return {"status": "ok"}
 
 
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
 
