@@ -1,0 +1,33 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pull latest image
+        run: docker compose -f deploy/docker-compose.yml pull
+
+      - name: Restart service
+        run: docker compose -f deploy/docker-compose.yml up -d
+
+      - name: Wait for service to start
+        run: |
+          echo "Waiting for service..."
+          timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 5; done'
+
+      - name: Smoke Test - Prediction
+        run: |
+          echo "Running prediction smoke test..."
+          curl -f -X POST http://localhost:8000/predict \
+            -F "file=@scripts/50.jpg"
+
+          echo "Smoke tests passed!"
