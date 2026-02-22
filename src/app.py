@@ -1,8 +1,9 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Request
 import torch
 from PIL import Image
 from torchvision import transforms
 from src.model import SimpleCNN
+import time
 
 app = FastAPI()
 
@@ -18,6 +19,7 @@ transform = transforms.Compose([
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 
 
@@ -37,3 +39,26 @@ async def predict(file: UploadFile = File(...)):
         "label": label,
         "probability": float(prob)
     }
+
+
+request_count = 0
+
+@app.middleware("http")
+async def monitoring_middleware(request: Request, call_next):
+    global request_count
+
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    request_count += 1
+
+    print("----- REQUEST LOG -----")
+    print(f"Path: {request.url.path}")
+    print(f"Method: {request.method}")
+    print(f"Status: {response.status_code}")
+    print(f"Latency: {process_time:.4f} sec")
+    print(f"Total Requests: {request_count}")
+    print("-----------------------")
+
+    return response
